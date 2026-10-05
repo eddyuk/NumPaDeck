@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Determine version (tag wins, else csproj)
+        id: ver
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -like 'v*') {
+            $v = $env:GITHUB_REF_NAME.TrimStart('v')
+          } else {
+            $cs = Get-Content 'NumPaDeck/NumPaDeck.csproj' -Raw
+            $m = [regex]::Match($cs, '<Version>([^<]+)</Version>')
+            if (-not $m.Success) { throw "No <Version> found in csproj" }
+            $v = $m.Groups[1].Value
+          }
+          "VERSION=$v" | Add-Content -Path $env:GITHUB_ENV
+          "VERSION=$v" | Add-Content -Path $env:GITHUB_OUTPUT
+          Write-Host "Releasing version $v"
+
+      - name: Build (Debug-skip Release)
+        run: dotnet build NumPaDeck/NumPaDeck.csproj -c Release
+
+      - name: Self-test (hard quality gate)
+        run: ./NumPaDeck/bin/Release/net10.0-windows/NumPaDeck.exe --selftest
+
+      - name: UI smoke test (non-blocking; headless runners may lack a desktop session)
+        continue-on-error: true
+        run: ./NumPaDeck/bin/Release/net10.0-windows/NumPaDeck.exe --smoketest
+
+      - name: Publish (self-contained single file — zero prerequisites on user machines)
+        run: dotnet publish NumPaDeck/NumPaDeck.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o dist\win-x64
+
+      - name: Verify the portable build passes its own self-test
+        run: ./dist/win-x64/NumPaDeck.exe --selftest
+
+      - name: Zip the portable app
+        shell: pwsh
+        run: |
+          $zip = "NumPaDeck-$env:VERSION-win64.zip"
+          Compress-Archive -Path "dist\win-x64\*" -DestinationPath $zip -CompressionLevel Optimal
+          $sha = (Get-FileHash $zip -Algorithm SHA256).Hash
+          Set-Content -Path "$zip.sha256" -Value "$sha  $zip"
+          Write-Host "ZIP SHA256: $sha"
+
+      - name: Install Inno Setup
+        run: choco install -y innosetup
+
+      - name: Build setup.exe (per-user, opt-in autostart)
+        shell: pwsh
+        run: |
+          $inno = Get-ChildItem "C:\Program Files*\Inno Setup *" -Directory -ErrorAction SilentlyContinue |
+                  Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $inno) { throw "Inno Setup 6 was not found" }
+          $iscc = Join-Path $inno.FullName "ISCC.exe"
+          & $iscc "/DMyAppVersion=$env:VERSION" ".\installer\NumPaDeck.iss"
+          $exe = "installer\Output\NumPaDeck-Setup-$env:VERSION.exe"
+          $sha = (Get-FileHash $exe -Algorithm SHA256).Hash
+          Set-Content -Path "installer\Output\$($exe | Split-Path -Leaf).sha256" -Value "$sha  NumPaDeck-Setup-$env:VERSION.exe"
+          Write-Host "SETUP SHA256: $sha"
+          Write-Host "SETUP URL: https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$env:VERSION/NumPaDeck-Setup-$env:VERSION.exe"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            NumPaDeck-${{ steps.ver.outputs.VERSION }}-win64.zip
+            NumPaDeck-${{ steps.ver.outputs.VERSION }}-win64.zip.sha256
+            installer/Output/NumPaDeck-Setup-${{ steps.ver.outputs.VERSION }}.exe
+            installer/Output/NumPaDeck-Setup-${{ steps.ver.outputs.VERSION }}.exe.sha256
+          generate_release_notes: true
+          draft: false
+          prerelease: false

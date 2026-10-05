@@ -18,12 +18,23 @@ URL, or command. Keys you don't map keep behaving exactly as Windows does.
 
 ---
 
+## Get it
+
+- **winget:** `winget install eddyuk.NumPaDeck`
+- **Classic installer:** download the latest `NumPaDeck-Setup-<version>.exe` from the
+  [releases](https://github.com/eddyuk/NumPaDeck/releases) — per-user, no admin rights.
+  The installer offers an optional *“Start NumPaDeck when you sign in”* checkbox
+  (opt-in autostart via the HKCU `Run` key).
+- **Portable zip:** download `NumPaDeck-<version>-win64.zip`, unzip it anywhere
+  (e.g., `%LOCALAPPDATA%\Programs\NumPaDeck`) and run `NumPaDeck.exe`. The released
+  builds are **self-contained** — nothing else to install.
+
 ## Requirements
 
-- Windows 10 or 11
-- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (the
-  shipped executable is framework-dependent)
-- Nothing else. The source has **zero NuGet dependencies**.
+- Windows 10 or 11 (x64)
+- Released builds: **nothing else** — the .NET runtime is bundled in.
+- Building from source: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
+  The source itself has **zero NuGet dependencies**.
 
 ## Build
 
@@ -119,9 +130,9 @@ A key that has no mapping entry behaves as *Pass through*.
 ## Self-verification
 
 ```powershell
-# 50 offline checks: combo parser, VK mapping, media keys, config round-trip,
-# and full routing/gesture behavior — via an injected recording sink, so NO
-# real keystrokes, processes, or config files are involved.
+# 55 offline checks: combo parser, VK mapping, media keys, SendInput layout,
+# config round-trip, and full routing/gesture behavior — via an injected
+# recording sink, so NO real keystrokes, processes, or config files are involved.
 NumPaDeck.exe --selftest
 
 # Constructs the real settings window, key mapper, and prompt against a

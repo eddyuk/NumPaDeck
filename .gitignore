@@ -32,6 +32,11 @@ project.assets.json
 # Keep top-level global config if present, ignore local
 nuget.config
 
+# --- Publish / build artifacts ---
+dist/
+# --- Installer build output ---
+installer/Output/
+
 # --- Test results ---
 [Tt]est[Rr]esult*/
 *.trx
