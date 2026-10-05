@@ -1,0 +1,46 @@
+# --- Build output ---
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+bin/
+obj/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+artifacts/
+
+# --- .NET / MSBuild ---
+*.suo
+*.sln.docstates
+*.user
+*.userosscache
+*.sln.ide
+.idea/
+.vs/
+.vscode/
+*.DotSettings.user
+
+# NuGet
+.nuget/
+packages/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+# Keep top-level global config if present, ignore local
+nuget.config
+
+# --- Test results ---
+[Tt]est[Rr]esult*/
+*.trx
+coverage*.json
+coverage*.xml
+
+# --- Temp / local state ---
+*.log
+!README.md
+*.tmp
+*.bak
+*.swp

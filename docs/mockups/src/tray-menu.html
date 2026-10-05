@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NumPaDeck — Tray (mockup)</title>
+<style>
+  :root{
+    --bg:#ffffff; --border:#d2d2d2; --text:#1a1a1a;
+    --muted:#707070; --accent:#0067c0; --accent-soft:#e6f0fa;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif;}
+  body{background:#d8dbe0; padding:48px;}
+  .window{width:820px; height:560px; background:var(--bg); border-radius:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,.25); overflow:hidden; border:1px solid #c9c9c9;
+    display:flex; flex-direction:column; position:relative;}
+  .caption{display:flex; align-items:center; gap:10px; padding:16px 20px; font-size:13px; color:#333; background:#fafbfc; border-bottom:1px solid #ececec;}
+  .caption b{color:var(--accent);}
+  .stage{flex:1; position:relative; background:
+    linear-gradient(180deg,#eef1f5 0%, #e7ebf0 100%);
+    overflow:hidden;}
+  /* desktop-ish backdrop */
+  .stage::before{content:""; position:absolute; inset:0;
+    background:radial-gradient(600px 300px at 70% 35%, rgba(0,103,192,.06), transparent 70%);}
+  .captionchip{position:absolute; left:20px; top:36px;
+    background:#fff; border:1px solid #cfd6de; border-radius:8px; padding:10px 14px;
+    font-size:12.5px; color:#333; box-shadow:0 4px 14px rgba(0,0,0,.08); line-height:1.5; max-width:250px;}
+  .captionchip b{color:#111;}
+  /* menus */
+  .menu{position:absolute; right:230px; bottom:70px; width:230px; background:#fff;
+    border:1px solid #cfd6de; border-radius:8px; box-shadow:0 8px 26px rgba(0,0,0,.18); padding:6px; }
+  .mhead{padding:7px 10px 9px; border-bottom:1px solid #ececec; margin-bottom:5px;}
+  .mhead .t{font-size:12.5px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px;}
+  .mhead .s{font-size:10.5px; color:var(--muted);}
+  .micon{width:18px;height:18px;border-radius:4px;background:var(--accent);display:inline-grid;place-items:center;flex:0 0 auto;}
+  .micon::after{content:""; width:8px;height:8px;background:#fff;border-radius:1px;}
+  .mitem{display:flex; align-items:center; gap:9px; padding:7px 10px; font-size:12.5px; color:var(--text); border-radius:5px;}
+  .mitem .chk{width:14px; color:var(--accent); font-size:11px; flex:0 0 auto;}
+  .mitem .arrow{margin-left:auto; color:#8a8a8a; font-size:10px;}
+  .mitem.hot{background:var(--accent-soft);}
+  .msep{height:1px; background:#ececec; margin:5px 6px;}
+  .sub{position:absolute; right:478px; top:266px; width:190px;
+    background:#fff; border:1px solid #cfd6de; border-radius:8px; box-shadow:0 8px 26px rgba(0,0,0,.18); padding:6px;}
+  .sub .mitem{font-size:12.5px;}
+  /* taskbar */
+  .taskbar{position:absolute; left:0; right:0; bottom:0; height:46px; background:rgba(250,250,251,.92); border-top:1px solid #d5d9de;
+    display:flex; align-items:center; padding:0 10px; gap:4px; backdrop-filter:blur(6px);}
+  .ticon{width:30px;height:30px;display:grid;place-items:center;border-radius:6px;}
+  .ticon .sq{width:17px;height:17px;border-radius:4px;background:#b9c2cc;}
+  .ticon.sys .sq{background:#9aa6b3; width:15px;}
+  .tray{margin-left:auto; display:flex; align-items:center; gap:6px;}
+  .tray .caret{font-size:9px; color:#8a8a8a; margin-right:6px;}
+  .numpadicon{width:20px;height:20px;border-radius:5px; padding:3px; display:grid;
+    grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:1.6px;}
+  .numpadicon span{border-radius:1.5px; display:block;}
+  .numpadicon.on{background:var(--accent);}
+  .numpadicon.on span{background:#fff;}
+  .numpadicon.off{background:#c7ccd1;}
+  .numpadicon.off span{background:#eef0f2;}
+  .numpadicon span.wide{grid-column: span 2;}
+  .clock{font-size:11.5px; color:var(--text); text-align:right; line-height:1.35; margin-left:8px;}
+  .lbl{font-size:10px; color:var(--muted); text-align:center; margin-top:4px; width:46px;}
+  .iconwrap{display:flex; flex-direction:column; align-items:center;}
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="caption">
+      <b>Tray</b> — right-click the NumPaDeck icon for presets, the enable toggle, settings, and exit.
+    </div>
+
+    <div class="stage">
+      <div class="captionchip">
+        <b>Running state.</b><br>
+        The icon is tinted while hijacking is enabled, and turns gray in passthrough (disabled) mode — at a glance.
+      </div>
+
+      <div class="sub">
+        <div class="mitem"><span class="chk">✓</span> Deck A</div>
+        <div class="mitem">Dev Shortcuts</div>
+        <div class="mitem">Passthrough only</div>
+      </div>
+
+      <div class="menu">
+        <div class="mhead">
+          <div class="t"><span class="micon"></span> NumPaDeck</div>
+          <div class="s">Hijacking enabled · Preset: Deck A</div>
+        </div>
+        <div class="mitem hot">Presets <span class="arrow">◂</span></div>
+        <div class="mitem"><span class="chk">✓</span> Enable hijacking</div>
+        <div class="msep"></div>
+        <div class="mitem">Settings…</div>
+        <div class="mitem">Exit</div>
+      </div>
+
+      <div class="taskbar">
+        <div class="ticon"><div class="sq"></div></div>
+        <div class="ticon"><div class="sq"></div></div>
+        <div class="ticon sys"><div class="sq"></div></div>
+        <div class="tray">
+          <span class="caret">︿</span>
+          <div class="iconwrap">
+            <div class="numpadicon on">
+              <span></span><span></span><span></span>
+              <span class="wide"></span><span></span>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="lbl">enabled</div>
+          </div>
+          <div class="iconwrap">
+            <div class="numpadicon off">
+              <span></span><span></span><span></span>
+              <span class="wide"></span><span></span>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="lbl">disabled</div>
+          </div>
+          <div class="clock">14:32<br>10/04/2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

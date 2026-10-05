@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NumPaDeck — Settings (mockup)</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f3f3f3; --border:#d2d2d2; --text:#1a1a1a;
+    --muted:#707070; --accent:#0067c0; --accent-soft:#e6f0fa;
+    --amber:#8a5a00; --amber-soft:#fdf3e0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif;}
+  body{background:#d8dbe0; padding:48px; }
+  .window{width:980px; background:var(--bg); border-radius:10px;
+    box-shadow:0 10px 40px rgba(0,0,0,.25); overflow:hidden; border:1px solid #c9c9c9;}
+  .titlebar{height:36px; display:flex; align-items:center; padding-left:14px;
+    background:#fdfdfd; border-bottom:1px solid #e5e5e5;}
+  .titlebar .icon{width:16px;height:16px;border-radius:4px;background:var(--accent);
+    margin-right:10px; display:grid; place-items:center;}
+  .titlebar .icon i{width:8px;height:8px;background:#fff;border-radius:1px;display:block;}
+  .titlebar .title{font-size:12.5px; color:var(--text);}
+  .tbbtns{margin-left:auto; display:flex;}
+  .tbbtns span{width:44px;height:36px;display:grid;place-items:center;font-size:12px;color:#5a5a5a;}
+  .tbbtns .close{ color:#c42b1c; }
+  .body{display:flex; min-height:520px; border-bottom:1px solid #e8e8e8;}
+  .side{width:250px; border-right:1px solid #e8e8e8; padding:16px; background:#fafafa; display:flex; flex-direction:column;}
+  .side h3{font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:10px;}
+  .plist{list-style:none; margin-bottom:12px;}
+  .plist li{padding:8px 10px; font-size:13px; border-radius:5px; margin-bottom:2px; color:var(--text); display:flex; justify-content:space-between; align-items:center;}
+  .plist li .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  .plist li.sel{background:var(--accent); color:#fff;}
+  .plist li.sel .dot{background:#fff;}
+  .plist li.mut{color:var(--muted);}
+  .side .btns{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:auto;}
+  .btn{font-size:12.5px; padding:6px 10px; border:1px solid var(--border); background:#fbfbfb;
+    border-radius:5px; text-align:center; color:var(--text); white-space:nowrap;}
+  .main{flex:1; padding:18px 22px; display:flex; gap:26px; align-items:flex-start;}
+  .main h3{font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:10px;}
+  .numpad{display:grid; grid-template-columns:repeat(4,84px); gap:10px;}
+  .key{height:88px; border-radius:8px; border:1px solid #d5d5d5; background:#fcfcfc;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:6px;
+    text-align:center;}
+  .key .vk{font-size:19px; font-weight:600; color:var(--text);}
+  .key .verb{font-size:10px; font-weight:600; letter-spacing:.3px; text-transform:uppercase;}
+  .key .val{font-size:10.5px; color:var(--muted); max-width:78px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .key.mapped{border:1.5px solid var(--accent); background:var(--accent-soft);}
+  .key.mapped .verb{color:var(--accent);}
+  .key.gesture{border:1.5px solid var(--amber); background:var(--amber-soft);}
+  .key.gesture .verb{color:var(--amber);}
+  .key.wide .val{max-width:200px;}
+  .key.none{background:#f2f2f2; border-style:dashed;}
+  .key.none .vk{color:var(--muted);}
+  .key.none .verb{color:#9a9a9a;}
+  .key.pass .vk{color:#b3b3b3;}
+  .key.pass .verb{color:#c3c3c3;}
+  .legend{margin-left:auto; display:flex; flex-direction:column; gap:10px; width:215px; padding-top:4px;}
+  .legend .row{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted);}
+  .legend .chip{width:14px;height:14px;border-radius:4px;border:1px solid #d5d5d5;background:#fcfcfc;flex:0 0 auto;}
+  .legend .chip.m{border-color:var(--accent);background:var(--accent-soft);}
+  .legend .chip.g{border-color:var(--amber);background:var(--amber-soft);}
+  .legend .chip.n{background:#f2f2f2;border-style:dashed;}
+  .bar{display:flex; align-items:center; gap:20px; padding:12px 22px; background:#fafafa;}
+  .bar .grp{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text);}
+  .check{width:15px;height:15px;border:1px solid #9a9a9a;border-radius:4px;background:#fff;display:grid;place-items:center;}
+  .check.on{background:var(--accent);border-color:var(--accent);}
+  .check.on::after{content:"✓"; color:#fff; font-size:10px; line-height:1;}
+  .dd{border:1px solid var(--border); background:#fbfbfb; border-radius:5px; padding:5px 10px; font-size:12.5px; display:flex; align-items:center; gap:8px; min-width:88px; justify-content:space-between;}
+  .dd .car{color:#8a8a8a; font-size:9px;}
+  .bar .spacer{flex:1;}
+  .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent); padding:6px 20px;}
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="icon"><i></i></div>
+      <div class="title">NumPaDeck — Settings</div>
+      <div class="tbbtns"><span>–</span><span>▢</span><span class="close">✕</span></div>
+    </div>
+
+    <div class="body">
+      <div class="side">
+        <h3>Presets</h3>
+        <ul class="plist">
+          <li class="sel">Deck A <span class="dot"></span></li>
+          <li>Dev Shortcuts</li>
+          <li class="mut">Passthrough only</li>
+        </ul>
+        <div class="btns">
+          <div class="btn">New…</div>
+          <div class="btn">Rename…</div>
+          <div class="btn">Duplicate</div>
+          <div class="btn">Delete</div>
+        </div>
+      </div>
+
+      <div class="main">
+        <div>
+          <h3>Numpad — Preset “Deck A”</h3>
+          <div class="numpad">
+            <div class="key mapped"><span class="vk">7</span><span class="verb">Media</span><span class="val">Play / Pause</span></div>
+            <div class="key mapped"><span class="vk">8</span><span class="verb">Media</span><span class="val">Previous track</span></div>
+            <div class="key mapped"><span class="vk">9</span><span class="verb">Media</span><span class="val">Next track</span></div>
+            <div class="key mapped"><span class="vk">−</span><span class="verb">Media</span><span class="val">Volume down</span></div>
+
+            <div class="key mapped"><span class="vk">4</span><span class="verb">Key</span><span class="val">Ctrl+Shift+T</span></div>
+            <div class="key none"><span class="vk">5</span><span class="verb">Do nothing</span><span class="val">suppressed</span></div>
+            <div class="key mapped"><span class="vk">6</span><span class="verb">Media</span><span class="val">Volume up</span></div>
+            <div class="key mapped"><span class="vk">+</span><span class="verb">Launch</span><span class="val">notepad.exe</span></div>
+
+            <div class="key pass"><span class="vk">1</span><span class="verb">pass</span><span class="val">—</span></div>
+            <div class="key pass"><span class="vk">2</span><span class="verb">pass</span><span class="val">—</span></div>
+            <div class="key pass"><span class="vk">3</span><span class="verb">pass</span><span class="val">—</span></div>
+            <div class="key pass"><span class="vk">=</span><span class="verb">pass</span><span class="val">—</span></div>
+
+            <div class="key gesture wide" style="grid-column: span 2;"><span class="vk">0</span><span class="verb">Gesture</span><span class="val">double-tap → cycle preset</span></div>
+            <div class="key pass"><span class="vk">.</span><span class="verb">pass</span><span class="val">—</span></div>
+            <div class="key pass"><span class="vk">↵</span><span class="verb">pass</span><span class="val">—</span></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <h3>Cell states</h3>
+          <div class="row"><span class="chip m"></span> Mapped to an action</div>
+          <div class="row"><span class="chip g"></span> Preset-switch gesture key</div>
+          <div class="row"><span class="chip n"></span> Do nothing (suppressed)</div>
+          <div class="row"><span class="chip"></span> Passthrough (default)</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:6px;">
+            Click any key to program it for the selected preset.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bar">
+      <div class="grp"><span class="check on"></span> Enable hijacking</div>
+      <div class="grp" style="margin-left:10px;">
+        <span class="check on"></span>
+        <span>Preset switch gesture:</span>
+        <span class="dd">Numpad 0 <span class="car">▼</span></span>
+        <span class="dd">250 ms <span class="car">▼</span></span>
+      </div>
+      <div class="spacer"></div>
+      <div class="btn">Cancel</div>
+      <div class="btn primary">Save</div>
+    </div>
+  </div>
+</body>
+</html>
