@@ -1,7 +1,13 @@
 # winget manifest for `winget install eddyuk.NumPaDeck`
 
-This folder mirrors the [winget-pkgs](https://github.com/microsoft/winget-pkgs)
-layout so the manifests can be dropped straight into a fork of `winget-pkgs`:
+## Status
+
+| Version | Manifest state | winget-pkgs PR |
+|---------|---------------|----------------|
+| 1.0.0 | ✅ SHA256 from CI, validated (`winget validate` clean) | [#447079](https://github.com/microsoft/winget-pkgs/pull/447079) — all 10 automated checks green, CLA signed; awaiting winget-pkgs moderator review (normal for a first submission) |
+
+The folder below mirrors the [winget-pkgs](https://github.com/microsoft/winget-pkgs)
+layout so manifests can be dropped straight into a fork of `winget-pkgs`:
 
 ```
 winget-pkgs (fork)
