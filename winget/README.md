@@ -4,7 +4,7 @@
 
 | Version | Manifest state | winget-pkgs PR |
 |---------|---------------|----------------|
-| 1.0.0 | ✅ SHA256 from CI, validated (`winget validate` clean) | [#447079](https://github.com/microsoft/winget-pkgs/pull/447079) — all 10 automated checks green, CLA signed; awaiting winget-pkgs moderator review (normal for a first submission) |
+| 1.0.0 | ✅ SHA256 from CI, validated (`winget validate` clean) | [#447079](https://github.com/microsoft/winget-pkgs/pull/447079) — **DRAFT** (deliberately held) — all 10 automated checks green, CLA signed; will be undrafted once the stable release is ready, then it goes back to winget-pkgs moderator review |
 
 The folder below mirrors the [winget-pkgs](https://github.com/microsoft/winget-pkgs)
 layout so manifests can be dropped straight into a fork of `winget-pkgs`:
