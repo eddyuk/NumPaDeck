@@ -12,5 +12,7 @@ public class AppSettings
 
     public GestureConfig Gesture { get; set; } = new();
 
+    public OverlayConfig Overlay { get; set; } = new();
+
     public List<Preset> Presets { get; set; } = new();
 }

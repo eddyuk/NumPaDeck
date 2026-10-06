@@ -184,6 +184,7 @@ Reference images live in `docs/mockups/` (editable sources in `docs/mockups/src/
 
 | Mockup | File | What it shows |
 |--------|------|---------------|
+| Numpad overlay | [`mockups/numpad-overlay.png`](mockups/numpad-overlay.png) | Translucent always-on-top live mirror of the active preset: per-key action labels, cell states, gesture key, key-press flash, drag/close annotations |
 | Settings window | [`mockups/settings-window.png`](mockups/settings-window.png) | Preset manager, visual numpad with per-key verb labels, cell-state legend, gesture + enable settings strip |
 | Key mapper | [`mockups/key-mapper.png`](mockups/key-mapper.png) | Per-key action editor: verb dropdown, live combo capture, current mapping, full verb list |
 | Tray | [`mockups/tray-menu.png`](mockups/tray-menu.png) | Tray icon (enabled/disabled states), right-click menu, preset submenu, enable toggle |

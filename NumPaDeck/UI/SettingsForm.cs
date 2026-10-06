@@ -8,10 +8,10 @@ using NumPaDeck.Presets;
 namespace NumPaDeck.UI;
 
 /// <summary>
-/// Settings window: preset list + numpad mapping grid + legend + bottom bar
-/// (enable toggle, gesture config, Save/Cancel). Edits apply to live state
-/// immediately but are batched: Save commits + persists, Cancel restores the
-/// snapshot taken when the window opened.
+/// Settings window: preset list + numpad mapping grid + legend + overlay row
+/// (show numpad overlay + opacity) + bottom bar (enable toggle, gesture config,
+/// Save/Cancel). Edits apply to live state immediately but are batched: Save
+/// commits + persists, Cancel restores the snapshot taken when the window opened.
 /// </summary>
 public sealed class SettingsForm : Form
 {
@@ -32,6 +32,10 @@ public sealed class SettingsForm : Form
     private readonly CheckBox _gestureBox;
     private readonly ComboBox _gestureKeyCombo;
     private readonly ComboBox _windowCombo;
+    private CheckBox _overlayBox;
+    private TrackBar _opacityBar;
+    private Label _opacityPct;
+    private bool _syncingOverlay;
 
     private static readonly (string Id, string Label)[] GestureKeys =
     {
@@ -59,7 +63,7 @@ public sealed class SettingsForm : Form
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(962, 584);
+        ClientSize = new Size(962, 648);
 
         _presetList = new ListBox
         {
@@ -93,6 +97,7 @@ public sealed class SettingsForm : Form
         _gridHeader = BuildNumpadGrid();
         BuildLegend();
         _enableBox = BuildBottomBar(out _gestureBox, out _gestureKeyCombo, out _windowCombo);
+        (_overlayBox, _opacityBar, _opacityPct) = BuildOverlayRow();
 
         _manager.BeginEdit();
 
@@ -304,7 +309,7 @@ public sealed class SettingsForm : Form
         var enable = new CheckBox
         {
             Text = "Enable numpad hijacking",
-            Location = new Point(24, 536),
+            Location = new Point(24, 600),
             AutoSize = true,
             Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
         };
@@ -312,13 +317,13 @@ public sealed class SettingsForm : Form
         gestureBox = new CheckBox
         {
             Text = "Double-tap switch:",
-            Location = new Point(216, 536),
+            Location = new Point(216, 600),
             AutoSize = true
         };
 
         keyCombo = new ComboBox
         {
-            Location = new Point(352, 532),
+            Location = new Point(352, 596),
             Size = new Size(84, 26),
             DropDownStyle = ComboBoxStyle.DropDownList
         };
@@ -328,24 +333,24 @@ public sealed class SettingsForm : Form
         Controls.Add(new Label
         {
             Text = "within",
-            Location = new Point(446, 536),
+            Location = new Point(446, 600),
             AutoSize = true,
             ForeColor = Color.FromArgb(90, 95, 100)
         });
         windowCombo = new ComboBox
         {
-            Location = new Point(500, 532),
+            Location = new Point(500, 596),
             Size = new Size(70, 26),
             DropDownStyle = ComboBoxStyle.DropDownList
         };
         foreach (int ms in new[] { 100, 150, 200, 250, 300, 400, 500, 750, 1000 })
             windowCombo.Items.Add(ms);
 
-        var cancel = new Button { Text = "Cancel", Location = new Point(766, 528), Size = new Size(80, 34) };
+        var cancel = new Button { Text = "Cancel", Location = new Point(766, 592), Size = new Size(80, 34) };
         var save = new Button
         {
             Text = "Save",
-            Location = new Point(854, 528),
+            Location = new Point(854, 592),
             Size = new Size(84, 34),
             BackColor = Color.FromArgb(0, 103, 192),
             ForeColor = Color.White,
@@ -387,6 +392,57 @@ public sealed class SettingsForm : Form
         if (_gestureKeyCombo.SelectedItem is not GestureKeyOption opt) return;
         if (_windowCombo.SelectedItem is not int ms) return;
         _manager.SetGesture(_gestureBox.Checked, opt.Id, ms);
+    }
+
+    private (CheckBox Box, TrackBar Bar, Label Pct) BuildOverlayRow()
+    {
+        var box = new CheckBox
+        {
+            Text = "Show numpad overlay",
+            Location = new Point(24, 530),
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+        };
+
+        Controls.Add(new Label
+        {
+            Text = "Opacity",
+            Location = new Point(186, 532),
+            AutoSize = true,
+            ForeColor = Color.FromArgb(90, 95, 100)
+        });
+
+        var bar = new TrackBar
+        {
+            Location = new Point(248, 518),
+            Size = new Size(220, 45),
+            Minimum = 15,
+            Maximum = 100,
+            TickStyle = TickStyle.None
+        };
+
+        var pct = new Label
+        {
+            Text = "… %",
+            Location = new Point(484, 532),
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9f, FontStyle.Bold)
+        };
+
+        box.CheckedChanged += (s, e) => ApplyOverlaySettings();
+        bar.ValueChanged += (s, e) => ApplyOverlaySettings();
+
+        Controls.Add(box);
+        Controls.Add(bar);
+        Controls.Add(pct);
+        return (box, bar, pct);
+    }
+
+    private void ApplyOverlaySettings()
+    {
+        if (_syncingOverlay) return; // programmatic sync in RefreshBottomBar, not user input
+        _opacityPct.Text = _opacityBar.Value + " %";
+        _manager.SetOverlay(_overlayBox.Checked, _opacityBar.Value / 100.0);
     }
 
     // ------------------------------------------------------------------
@@ -548,5 +604,17 @@ public sealed class SettingsForm : Form
         }
         if (wi < 0) _windowCombo.SelectedItem = 250; // fall back to a known entry
         else _windowCombo.SelectedIndex = wi;
+
+        _syncingOverlay = true;
+        try
+        {
+            _overlayBox.Checked = _manager.Settings.Overlay.Visible;
+            _opacityBar.Value = Math.Clamp((int)Math.Round(_manager.Settings.Overlay.Opacity * 100.0), 15, 100);
+            _opacityPct.Text = _opacityBar.Value + " %";
+        }
+        finally
+        {
+            _syncingOverlay = false;
+        }
     }
 }

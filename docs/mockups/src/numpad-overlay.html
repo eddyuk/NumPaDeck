@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NumPaDeck — Numpad overlay (mockup)</title>
+<style>
+  :root{
+    --accent:#0067c0; --accent-lite:#4da3ff;
+    --amber-lite:#f5b942;
+    --ink:#f2f4f8; --muted:#98a1b3;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,sans-serif;}
+  body{background:#d8dbe0; padding:48px;}
+  .stage{width:1080px; height:608px; border-radius:10px; overflow:hidden; position:relative;
+    box-shadow:0 10px 40px rgba(0,0,0,.25); border:1px solid #c9c9c9;
+    background:url('assets/wallpaper.jpg') center/cover no-repeat #333;}
+
+  /* desktop taskbar for context */
+  .taskbar{position:absolute; left:0; right:0; bottom:0; height:42px;
+    background:rgba(250,250,251,.92); border-top:1px solid #d5d9de;
+    display:flex; align-items:center; padding:0 10px; gap:4px;}
+  .ticon{width:26px;height:26px;display:grid;place-items:center;}
+  .ticon .sq{width:16px;height:16px;border-radius:4px;background:#b9c2cc;}
+  .ticon.brand .sq{background:var(--accent);}
+  .tray{margin-left:auto; display:flex; align-items:center;}
+  .clock{font-size:11.5px; color:#1a1a1a; text-align:right; line-height:1.35;}
+
+  /* ---------------- annotation card ---------------- */
+  .card{position:absolute; left:28px; top:28px; width:352px;
+    background:rgba(255,255,255,.95); border:1px solid #cfd6de; border-radius:8px; padding:14px 16px;
+    box-shadow:0 4px 14px rgba(0,0,0,.20);}
+  .card .t{font-size:13px; font-weight:700; color:#111;}
+  .card .sub{font-size:11.5px; color:#444; margin-top:4px; line-height:1.45;}
+  .card ul{list-style:none; margin-top:9px;}
+  .card li{font-size:11.5px; color:#333; padding:3px 0 3px 17px; position:relative; line-height:1.4;}
+  .card li::before{content:"✓"; position:absolute; left:0; color:var(--accent); font-size:11px;}
+  .card li b{font-weight:600; color:#111;}
+
+  .op{margin-top:12px; background:#f2f5f9; border:1px solid #dde4ec; border-radius:6px; padding:10px 12px;}
+  .op .k{font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:#707070;}
+  .op .v{font-size:12px; font-weight:600; color:#111; margin-top:2px;}
+  .op-track{position:relative; height:14px; border-radius:7px; margin-top:8px; border:1px solid #c9d2dd;
+    background:linear-gradient(90deg, rgba(22,26,36,.08), rgba(22,26,36,.96));}
+  .op-knob{position:absolute; top:50%; transform:translate(-50%,-50%); left:75%;
+    width:14px; height:14px; border-radius:50%; background:#fff; border:2px solid var(--accent);
+    box-shadow:0 1px 4px rgba(0,0,0,.35);}
+  .op-ends{display:flex; justify-content:space-between; font-size:10px; color:#707070; margin-top:4px;}
+
+  /* ---------------- the overlay (translucent!) ---------------- */
+  .overlay{position:absolute; right:26px; bottom:58px; width:452px;
+    background:rgba(20,24,34,.62); border:1px solid rgba(255,255,255,.22);
+    border-radius:14px; box-shadow:0 18px 48px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.10);
+    padding:13px 15px 11px; color:var(--ink); backdrop-filter:saturate(1.05);}
+  .head{display:flex; align-items:center; gap:9px; padding:1px 4px 10px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--accent-lite);box-shadow:0 0 8px rgba(77,163,255,.9);flex:0 0 auto;}
+  .pname{font-size:15px; font-weight:600; letter-spacing:.2px; text-shadow:0 1px 3px rgba(0,0,0,.6);}
+  .hint{font-size:10.5px; color:#c3cad8; margin-left:2px; text-shadow:0 1px 2px rgba(0,0,0,.6);}
+  .x{margin-left:auto; width:24px;height:24px;border-radius:6px; display:grid;place-items:center;
+    font-size:12px; color:#dfe5ee; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14); flex:0 0 auto;}
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .key{height:58px; border-radius:9px; border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.06); padding:6px 8px 5px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:3px; text-align:center;}
+  .key .vk{font-size:16px; font-weight:600; line-height:1; text-shadow:0 1px 3px rgba(0,0,0,.55);}
+  .key .act{font-size:10px; color:#c3cad8; max-width:94px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 2px rgba(0,0,0,.55);}
+  .key.mapped{border:1px solid rgba(77,163,255,.8); background:rgba(0,103,192,.45);}
+  .key.mapped .vk{color:#fff;}
+  .key.mapped .act{color:#dbe9ff;}
+  .key.gesture{border:1px solid rgba(245,185,66,.85); background:rgba(176,122,12,.42); grid-column: span 2;}
+  .key.gesture .vk{color:#fff3dd;}
+  .key.gesture .act{color:#f5ddb0; max-width:215px;}
+  .key.none{border-style:dashed; border-color:rgba(255,255,255,.30); background:rgba(255,255,255,.04);}
+  .key.none .vk{color:#c3cad8;}
+  .key.none .act{color:#b8c0cd;}
+  .key.pass .vk{color:#9aa4b5;}
+  .key.pass .act{display:none;}
+  .key.flash{border:1.5px solid #9ecbff; background:rgba(77,163,255,.62); box-shadow:0 0 16px rgba(77,163,255,.6);
+    position:relative;}
+  .key.flash .vk{color:#fff;}
+  .key.flash .act{color:#eef5ff;}
+  .legend{display:flex; align-items:center; gap:14px; padding:10px 4px 1px; margin-top:9px;
+    border-top:1px solid rgba(255,255,255,.14); font-size:10.5px; color:#c3cad8;}
+  .legend .chip{width:11px;height:11px;border-radius:3px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);flex:0 0 auto;margin-right:5px;}
+  .legend .li{display:flex; align-items:center;}
+  .legend .chip.m{border-color:rgba(77,163,255,.85);background:rgba(0,103,192,.5);}
+  .legend .chip.g{border-color:rgba(245,185,66,.9);background:rgba(176,122,12,.5);}
+  .legend .chip.n{border-style:dashed;background:rgba(255,255,255,.04);}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card">
+      <div class="t">Numpad overlay</div>
+      <div class="sub">A translucent, always-on-top mirror of your active preset — your desktop stays visible through it. Updates the moment you switch presets.</div>
+      <ul>
+        <li><b>Always top-most</b>, never in the taskbar</li>
+        <li><b>Drag</b> from anywhere — position is remembered</li>
+        <li><b>Pressed keys flash</b>, like key 9 — feedback while you work</li>
+        <li><b>× hides it</b>; re-show from the tray “Numpad overlay” menu item</li>
+      </ul>
+      <div class="op">
+        <div class="k">Opacity — shown at 75%</div>
+        <div class="v">Adjustable in Settings, 15%–100%</div>
+        <div class="op-track"><div class="op-knob"></div></div>
+        <div class="op-ends"><span>ghost 15%</span><span>solid 100%</span></div>
+      </div>
+    </div>
+
+    <div class="overlay">
+      <div class="head">
+        <span class="dot"></span>
+        <span class="pname">Deck A</span>
+        <span class="hint">active preset</span>
+        <span class="x">✕</span>
+      </div>
+
+      <div class="grid">
+        <div class="key mapped"><span class="vk">7</span><span class="act">Play / Pause</span></div>
+        <div class="key mapped"><span class="vk">8</span><span class="act">Prev track</span></div>
+        <div class="key mapped flash"><span class="vk">9</span><span class="act">Next track</span></div>
+        <div class="key mapped"><span class="vk">−</span><span class="act">Vol down</span></div>
+
+        <div class="key mapped"><span class="vk">4</span><span class="act">Ctrl+Shift+T</span></div>
+        <div class="key none"><span class="vk">5</span><span class="act">✕ suppressed</span></div>
+        <div class="key mapped"><span class="vk">6</span><span class="act">Vol up</span></div>
+        <div class="key mapped"><span class="vk">+</span><span class="act">notepad.exe</span></div>
+
+        <div class="key pass"><span class="vk">1</span></div>
+        <div class="key pass"><span class="vk">2</span></div>
+        <div class="key pass"><span class="vk">3</span></div>
+        <div class="key pass"><span class="vk">=</span></div>
+
+        <div class="key gesture"><span class="vk">0</span><span class="act">double-tap → cycle preset</span></div>
+        <div class="key pass"><span class="vk">.</span></div>
+        <div class="key pass"><span class="vk">↵</span></div>
+      </div>
+
+      <div class="legend">
+        <span class="li"><span class="chip m"></span>Mapped</span>
+        <span class="li"><span class="chip g"></span>Gesture key</span>
+        <span class="li"><span class="chip n"></span>Suppressed</span>
+        <span class="li"><span class="chip"></span>Passthrough</span>
+      </div>
+    </div>
+
+    <div class="taskbar">
+      <div class="ticon"><div class="sq"></div></div>
+      <div class="ticon brand"><div class="sq"></div></div>
+      <div class="ticon"><div class="sq"></div></div>
+      <div class="ticon"><div class="sq"></div></div>
+      <div class="ticon"><div class="sq"></div></div>
+      <div class="tray">
+        <div class="clock">79°F Cloudy<br>12:37<br>06/10/2026</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

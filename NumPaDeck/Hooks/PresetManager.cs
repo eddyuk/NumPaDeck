@@ -24,6 +24,29 @@ public sealed class PresetManager
     /// <summary>Raised when persisted state changed (tray/settings refresh).</summary>
     public event EventHandler? StateChanged;
 
+    /// <summary>
+    /// Raised (UI thread) when the overlay settings change. Fires even inside a
+    /// settings edit session, so the overlay and tray can update live while the
+    /// slider is moving.
+    /// </summary>
+    public event EventHandler? OverlayChanged;
+
+    /// <summary>
+    /// Raised (UI thread) with a numpad key id whenever that key is pressed by
+    /// the user while hijacking is active and not suspended — used purely for
+    /// UI feedback (the overlay flashing the pressed cell). Subscribers must
+    /// never block; exceptions are swallowed and logged.
+    /// </summary>
+    public event EventHandler<string>? KeyActivity;
+
+    private void ReportKeyActivity(string keyId)
+    {
+        var ev = KeyActivity;
+        if (ev == null) return;
+        try { ev(this, keyId); }
+        catch (Exception ex) { Log.Error("KeyActivity subscriber failed: " + ex.Message); }
+    }
+
     // Physical numpad keys whose key-down we swallowed (up-pairing + repeat).
     private readonly List<string> _held = new();
 
@@ -150,6 +173,7 @@ public sealed class PresetManager
         if (repeat)
         {
             // Holding the key down: never a double-tap, and only Media may re-fire.
+            ReportKeyActivity(keyId);
             if (isGestureKey) return true;
             var rep = MappingFor(keyId);
             if (rep.Verb == Verb.Media) _sink.Execute(rep.Verb, rep.Value);
@@ -186,6 +210,7 @@ public sealed class PresetManager
             {
                 _gestureTimer.Start();
             }
+            ReportKeyActivity(keyId);
             return true; // swallowed either way; key-up via _held pairing
         }
 
@@ -203,6 +228,7 @@ public sealed class PresetManager
         if (pending.Length > 0) DispatchSingleTap(pending);
 
         var mapping = MappingFor(keyId);
+        ReportKeyActivity(keyId);
         if (mapping.Verb == Verb.Passthrough)
         {
             lock (_gate) HeldRemove(keyId); // let the physical key-up through
@@ -221,6 +247,7 @@ public sealed class PresetManager
     internal void DispatchSingleTap(string keyId)
     {
         var m = MappingFor(keyId);
+        ReportKeyActivity(keyId);
         switch (m.Verb)
         {
             case Verb.None:
@@ -432,6 +459,28 @@ public sealed class PresetManager
             Settings.Gesture.Enabled = enabled;
             Settings.Gesture.Key = string.IsNullOrWhiteSpace(key) ? "0" : key;
             Settings.Gesture.TapWindowMs = Math.Clamp(windowMs, 80, 2000);
+        }
+        AfterModify();
+    }
+
+    public void SetOverlay(bool visible, double opacity)
+    {
+        opacity = Math.Clamp(opacity, 0.15, 1.0);
+        lock (_gate)
+        {
+            Settings.Overlay.Visible = visible;
+            Settings.Overlay.Opacity = opacity;
+        }
+        AfterModify();
+        OverlayChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void SetOverlayPosition(int x, int y)
+    {
+        lock (_gate)
+        {
+            Settings.Overlay.X = x;
+            Settings.Overlay.Y = y;
         }
         AfterModify();
     }

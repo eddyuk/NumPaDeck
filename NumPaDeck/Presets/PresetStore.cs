@@ -43,6 +43,8 @@ public static class PresetStore
                 if (doc != null)
                 {
                     if (doc.Gesture == null) doc.Gesture = new GestureConfig();
+                    if (doc.Overlay == null) doc.Overlay = new OverlayConfig();
+                    doc.Overlay.Opacity = Math.Clamp(doc.Overlay.Opacity, 0.15, 1.0);
                     if (doc.Presets == null) doc.Presets = new List<Preset>();
                     if (doc.Presets.Count == 0) doc.Presets.Add(new Preset("Default"));
                     if (!doc.ActivePresetId.HasValue || !doc.Presets.Any(p => p.Id == doc.ActivePresetId))
@@ -66,6 +68,7 @@ public static class PresetStore
             Enabled = true,
             ActivePresetId = p.Id,
             Gesture = new GestureConfig(),
+            Overlay = new OverlayConfig(),
             Presets = new List<Preset> { p }
         };
     }

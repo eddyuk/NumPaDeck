@@ -128,7 +128,8 @@ public static class SelfTest
         var doc = new AppSettings
         {
             Enabled = true,
-            Gesture = new GestureConfig { Enabled = true, Key = "5", TapWindowMs = 320 }
+            Gesture = new GestureConfig { Enabled = true, Key = "5", TapWindowMs = 320 },
+            Overlay = new OverlayConfig { Visible = true, Opacity = 0.6, X = 200, Y = 120 }
         };
         var a = new Preset("Deck A");
         a.Mappings["7"] = new KeyMapping(Verb.Media, "next");
@@ -151,6 +152,11 @@ public static class SelfTest
         Check("gesture config survives",
             back.Gesture.Enabled && back.Gesture.Key == "5" && back.Gesture.TapWindowMs == 320);
         Check("enabled flag survives", back.Enabled);
+        Check("overlay visible + opacity survive",
+            back.Overlay != null && back.Overlay.Visible
+            && Math.Abs(back.Overlay.Opacity - 0.6) < 0.001);
+        Check("overlay position survives",
+            back.Overlay != null && back.Overlay.X == 200 && back.Overlay.Y == 120);
     }
 
     private static void CheckRouting()
@@ -221,5 +227,20 @@ public static class SelfTest
         Check("suspended = passthrough", !m.OnNumpadKey("7", true) && !m.OnNumpadKey("7", false));
         m.Resume();
         Check("resumed = mapped again", m.OnNumpadKey("7", true) && m.OnNumpadKey("7", false));
+
+        // Overlay settings: clamped apply.
+        m.SetOverlay(false, 2.5);
+        Check("SetOverlay clamps opacity high",
+            Math.Abs(m.Settings.Overlay.Opacity - 1.0) < 0.001 && !m.Settings.Overlay.Visible);
+        m.SetOverlay(true, 0.02);
+        Check("SetOverlay clamps opacity low",
+            Math.Abs(m.Settings.Overlay.Opacity - 0.15) < 0.001 && m.Settings.Overlay.Visible);
+
+        // Key-activity feed (drives the overlay's pressed-key flash).
+        string? activity = null;
+        m.KeyActivity += (s, k) => activity = k;
+        m.OnNumpadKey("4", true);
+        Check("KeyActivity raised on key press", activity == "4");
+        m.OnNumpadKey("4", false);
     }
 }

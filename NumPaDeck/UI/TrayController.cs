@@ -16,10 +16,12 @@ public sealed class TrayController : IDisposable
     private readonly NotifyIcon _notifyIcon;
     private readonly ContextMenuStrip _menu;
     private readonly ToolStripMenuItem _enabledItem;
+    private readonly ToolStripMenuItem _overlayItem;
     private readonly ToolStripMenuItem _presetsMenu;
     private readonly Icon _iconOn;
     private readonly Icon _iconOff;
     private SettingsForm? _settingsForm;
+    private NumpadOverlayForm? _overlay;
     private bool _updating;
 
     public TrayController(PresetManager manager)
@@ -41,6 +43,17 @@ public sealed class TrayController : IDisposable
             if (!_updating) _manager.SetEnabled(_enabledItem.Checked);
         };
 
+        _overlayItem = new ToolStripMenuItem("Numpad overlay")
+        {
+            CheckOnClick = true,
+            Checked = _manager.Settings.Overlay.Visible
+        };
+        _overlayItem.CheckedChanged += (s, e) =>
+        {
+            if (!_updating)
+                _manager.SetOverlay(_overlayItem.Checked, _manager.Settings.Overlay.Opacity);
+        };
+
         var settingsItem = new ToolStripMenuItem("Settings…", null, (s, e) => ShowSettings());
         var exitItem = new ToolStripMenuItem("Exit", null, (s, e) => Application.Exit());
 
@@ -48,6 +61,7 @@ public sealed class TrayController : IDisposable
         _menu.Items.Add(_presetsMenu);
         _menu.Items.Add(new ToolStripSeparator());
         _menu.Items.Add(_enabledItem);
+        _menu.Items.Add(_overlayItem);
         _menu.Items.Add(settingsItem);
         _menu.Items.Add(new ToolStripSeparator());
         _menu.Items.Add(exitItem);
@@ -62,6 +76,7 @@ public sealed class TrayController : IDisposable
         _notifyIcon.DoubleClick += (s, e) => ShowSettings();
 
         _manager.StateChanged += (s, e) => UpdateFromState();
+        _manager.OverlayChanged += (s, e) => SyncOverlay();
         UpdateFromState();
     }
 
@@ -74,11 +89,13 @@ public sealed class TrayController : IDisposable
         {
             bool on = _manager.Settings.Enabled;
             _enabledItem.Checked = on;
+            _overlayItem.Checked = _manager.Settings.Overlay.Visible;
             _notifyIcon.Icon = on ? _iconOn : _iconOff;
             _notifyIcon.Text = on
                 ? "NumPaDeck — " + (_manager.ActivePreset?.Name ?? "hijacking on")
                 : "NumPaDeck — passthrough";
             RebuildPresetMenu();
+            SyncOverlay();
         }
         finally
         {
@@ -103,6 +120,33 @@ public sealed class TrayController : IDisposable
         }
     }
 
+    // ------------------------------------------------------------------
+    // Numpad overlay ownership (create/show/hide, never lost to GC)
+    // ------------------------------------------------------------------
+
+    private void SyncOverlay()
+    {
+        bool want = _manager.Settings.Overlay.Visible;
+        if (want)
+        {
+            if (_overlay is null || _overlay.IsDisposed)
+            {
+                var ov = new NumpadOverlayForm(_manager);
+                ov.FormClosed += (s, e) =>
+                {
+                    if (ReferenceEquals(_overlay, ov)) _overlay = null;
+                };
+                _overlay = ov;
+            }
+            if (!_overlay.Visible) _overlay.Show();
+            _overlay.BringToFront();
+        }
+        else if (_overlay is { IsDisposed: false })
+        {
+            _overlay.Hide();
+        }
+    }
+
     public void ShowSettings()
     {
         if (_settingsForm is { IsDisposed: false })
@@ -120,6 +164,12 @@ public sealed class TrayController : IDisposable
 
     public void Dispose()
     {
+        if (_overlay is { IsDisposed: false })
+        {
+            _overlay.Close();
+            _overlay.Dispose();
+            _overlay = null;
+        }
         _notifyIcon.Visible = false;
         _notifyIcon.Dispose();
         _menu.Dispose();

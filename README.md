@@ -58,6 +58,7 @@ Right-click the NumPaDeck tray icon for the menu:
 |-----------------------------------|---------------------------------------------------------|
 | **Presets** → *name*              | Select the active preset (checkmark marks the active one) |
 | **Enable numpad hijacking**       | Global on/off. When off, every numpad key passes straight through |
+| **Numpad overlay**                | Show/hide the floating numpad mirror panel (checkmark = visible) |
 | **Settings…**                     | Open the settings window (double-clicking the icon works too) |
 | **Exit**                          | Leave NumPaDeck running in the background and quit      |
 
@@ -74,6 +75,8 @@ the active preset name.
   the numpad keys that don't fit the standard layout.)
 - **Bottom bar:** the global enable toggle, plus the **double-tap gesture** settings
   (see below).
+- **Overlay row:** a *"Show numpad overlay"* checkbox and an **opacity slider
+  (15–100%)** that applies live as you drag it (see below).
 - **Save / Cancel:** edits apply live to the running hook; *Cancel* rolls the session
   back, *Save* (or closing the window) commits and persists.
 
@@ -115,11 +118,30 @@ When the gesture is enabled (default: **on**, gesture key **0**, window **250 ms
 
 Gesture key and timing are changeable in the settings bottom bar.
 
+### Numpad overlay
+
+A small always-on-top panel (bottom-right of the primary screen by default) that
+mirrors the current preset: the preset name up top and the 17 numpad keys as a
+grid with each key's action caption (*"Next track"*, *"Ctrl+Shift+T"*, …). It's
+**translucent** — the opacity is the slider in the settings overlay row — and it
+stays out of the way: borderless, no taskbar entry, never steals focus.
+
+- **Live:** switching presets (tray menu or double-tap) refreshes the panel
+  instantly, and the preset name pulses briefly on change.
+- **Feedback:** pressing a mapped numpad key flashes the matching cell.
+- **Color language** matches the settings grid: blue = mapped, amber = gesture
+  key, gray/dashed = "do nothing", dim = passthrough.
+- **Draggable** from any point; it remembers where you dropped it, clamped to
+  your screens.
+- **Hide/show:** the × on the panel or the tray menu hides it until you
+  re-enable it; the overlay is visible on first launch.
+- The panel is a mirror only — the cells themselves are not clickable.
+
 ## Configuration & data
 
 | Path                                    | What it is                                        |
 |-----------------------------------------|---------------------------------------------------|
-| `%APPDATA%\NumPaDeck\config.json`       | All presets, active preset, enable state, gesture config. Written atomically (temp file + replace). |
+| `%APPDATA%\NumPaDeck\config.json`       | All presets, active preset, enable state, gesture config, and overlay settings (visibility, opacity, last position). Written atomically (temp file + replace). |
 | `%APPDATA%\NumPaDeck\errors.log`        | Timestamped log of failures (action errors, config read/write problems, unhandled exceptions). |
 | `NUMPADECK_CONFIG` env var              | Overrides the config path (used by the self-test so it never touches your real config). |
 
@@ -130,15 +152,16 @@ A key that has no mapping entry behaves as *Pass through*.
 ## Self-verification
 
 ```powershell
-# 55 offline checks: combo parser, VK mapping, media keys, SendInput layout,
-# config round-trip, and full routing/gesture behavior — via an injected
-# recording sink, so NO real keystrokes, processes, or config files are involved.
+# 60 offline checks: combo parser, VK mapping, media keys, SendInput layout,
+# config round-trip (incl. overlay settings), and full routing/gesture
+# behavior — via an injected recording sink, so NO real keystrokes, processes,
+# or config files are involved.
 NumPaDeck.exe --selftest
 
-# Constructs the real settings window, key mapper, and prompt against a
-# throwaway config, briefly shows them, and exits 0 if the whole UI builds
-# without exceptions. Writes npd_smoke_result.txt / npd_smoke_trace.txt to
-# %TEMP%\opencode\.
+# Constructs the real settings window, key mapper, numpad overlay, and prompt
+# against a throwaway config, briefly shows them, and exits 0 if the whole UI
+# builds without exceptions. Writes npd_smoke_result.txt / npd_smoke_trace.txt
+# to %TEMP%\opencode\.
 NumPaDeck.exe --smoketest
 ```
 
@@ -174,8 +197,9 @@ NumPaDeck/
 │  ├─ KeyComboParser.cs    "Ctrl+Shift+T" → VK sequence
 │  └─ MediaAction.cs       media id → VK table
 ├─ Presets/                models (AppSettings, Preset, KeyMapping, Verb, …)
+│  ├─ OverlayConfig.cs     overlay visibility / opacity / position model
 │  └─ PresetStore.cs       atomic JSON load/save
 ├─ UI/                     TrayController, SettingsForm, KeyMapperDialog,
-│                          NumpadCellControl, PromptForm
+│                          NumpadCellControl, NumpadOverlayForm, PromptForm
 └─ App/                    Log, Toast, IconFactory, SelfTest, SmokeTest
 ```
