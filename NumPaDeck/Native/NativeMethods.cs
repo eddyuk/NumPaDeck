@@ -15,6 +15,7 @@ internal static class NativeMethods
     public const int WM_SYSKEYUP = 0x0105;
 
     public const uint INPUT_KEYBOARD = 1;
+    public const uint KEYEVENTF_EXTENDED = 0x0001;
     public const uint KEYEVENTF_KEYUP = 0x0002;
     public const uint KEYEVENTF_UNICODE = 0x0004;
 

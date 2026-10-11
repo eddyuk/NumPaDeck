@@ -29,6 +29,15 @@ public static class NumpadKeys
     private static bool IsExtended(uint flags) => (flags & 0x01) != 0;
 
     /// <summary>
+    /// True when a virtual-key code belongs to the numpad's extended-key set
+    /// (VK_NUMPAD0..9, MUL, DIV, DEC, SUB, ADD, NUMPAD_EQUAL). Used when
+    /// synthesizing those keys so SendInput marks them as extended.
+    /// </summary>
+    public static bool IsExtendedKey(uint vk) =>
+        (vk >= VK_NUMPAD0 && vk <= VK_NUMPAD9)
+        || vk is VK_MULT or VK_DIV or VK_DEC or VK_SUB or VK_ADD or VK_NUMPAD_EQUAL;
+
+    /// <summary>
     /// Translate a VK code + hook flags into a numpad key id, or null if the
     /// key is outside our numpad scope.
     /// </summary>

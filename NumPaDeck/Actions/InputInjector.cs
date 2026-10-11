@@ -10,15 +10,18 @@ public static class InputInjector
 {
     public static void SendKeyCombo(string combo)
     {
-        var vks = KeyComboParser.Parse(combo);
-        if (vks == null || vks.Length == 0) return;
-        var inputs = new NativeMethods.INPUT[vks.Length * 2];
-        for (int i = 0; i < vks.Length; i++)
-            inputs[i] = NativeMethods.KeyInput((ushort)vks[i], 0);
-        for (int i = 0; i < vks.Length; i++)
-            inputs[vks.Length + i] = NativeMethods.KeyInput((ushort)(vks.Length - 1 - i), KeyUpFlag());
-        NativeMethods.SendInputs(inputs);
+        var parts = KeyComboParser.ParseParts(combo);
+        if (parts == null || parts.Count == 0) return;
+        var inputs = new List<NativeMethods.INPUT>(parts.Count * 2);
+        foreach (var (vk, ext) in parts)
+            inputs.Add(NativeMethods.KeyInput((ushort)vk, Ext(ext)));
+        for (int i = parts.Count - 1; i >= 0; i--)
+            inputs.Add(NativeMethods.KeyInput((ushort)parts[i].vk, KeyUpFlag() | Ext(parts[i].extended)));
+        NativeMethods.SendInputs(inputs.ToArray());
     }
+
+    private static uint Ext(bool extended) =>
+        extended ? NativeMethods.KEYEVENTF_EXTENDED : 0;
 
     public static void TypeText(string text)
     {

@@ -88,7 +88,7 @@ For the selected numpad key, pick an **action**:
 |-----------------|---------------------------------------------------------------------|
 | *Do nothing*    | — the keypress is swallowed and does nothing                       |
 | *Pass through*  | — keeps the normal OS behavior (the default for unmapped keys)      |
-| *Key combo*     | e.g. `Ctrl+Shift+T` — use the **Capture combo…** button to record what you physically press |
+| *Key combo*     | e.g. `Ctrl+Shift+T` — use the **Capture combo…** button to record what you physically press (numpad keys work too, e.g. `Ctrl+Numpad7`) |
 | *Type string*   | the literal text to type (Unicode, any characters)                  |
 | *Media*         | one of: `playpause`, `next`, `prev`, `stop`, `volumedown`, `volumeup`, `mute` |
 | *Launch*        | an app path, an `http(s)://` / `mailto:` URL, or a `command args` line |
@@ -101,8 +101,9 @@ before committing (works for key combos, media keys, and launches).
 Modifiers (any of these spellings, case-insensitive): `Ctrl`/`Control`, `Alt`,
 `Shift`, `Win`/`Windows`/`Cmd`/`Meta`/`Super`.
 
-Plus **exactly one primary key**: letters, digits, `F1`–`F24`, `Space`, `Tab`, `Enter`,
-`Esc`, `Home/End/PageUp/PageDown/Insert/Delete`, arrows, `; ' [ ] \ , . / - =`.
+Plus **exactly one primary key**: letters, digits, `F1`–`F12`, `Space`, `Tab`, `Enter`,
+`Esc`, `Home/End/PageUp/PageDown/Insert/Delete`, arrows, `; ' [ ] \ , . / - =`,
+numpad keys (`Numpad0`–`Numpad9`, `NumpadAdd/Sub/Mul/Div/Dot`, `NumpadEnter`, `NumpadEqual`).
 Order of modifiers in the value string doesn't matter (`Shift+Ctrl+T` ≡ `Ctrl+Shift+T`).
 
 ### Double-tap preset switching
@@ -152,7 +153,7 @@ A key that has no mapping entry behaves as *Pass through*.
 ## Self-verification
 
 ```powershell
-# 60 offline checks: combo parser, VK mapping, media keys, SendInput layout,
+# 67 offline checks: combo parser (incl. numpad keys), VK mapping, media keys, SendInput layout,
 # config round-trip (incl. overlay settings), and full routing/gesture
 # behavior — via an injected recording sink, so NO real keystrokes, processes,
 # or config files are involved.

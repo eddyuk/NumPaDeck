@@ -70,6 +70,30 @@ public static class SelfTest
         Check("bare modifier rejected", KeyComboParser.Parse("Ctrl") == null);
         Check("empty input rejected", KeyComboParser.Parse("   ") == null);
         Check("two primary keys rejected", KeyComboParser.Parse("Ctrl+A+B") == null);
+
+        var np = KeyComboParser.Parse("Numpad7");
+        Check("Numpad7 -> 0x67", np is { Length: 1 } && np[0] == 0x67);
+
+        var npc = KeyComboParser.Parse("Ctrl+Numpad7");
+        Check("Ctrl+Numpad7 -> Ctrl 0x67",
+            npc is { Length: 2 } && npc[0] == 0x11 && npc[1] == 0x67);
+
+        var npe = KeyComboParser.Parse("NumpadEnter");
+        Check("NumpadEnter -> 0x0D", npe is { Length: 1 } && npe[0] == 0x0D);
+
+        var npa = KeyComboParser.Parse("NumpadAdd");
+        Check("NumpadAdd -> 0x6E", npa is { Length: 1 } && npa[0] == 0x6E);
+
+        var pe = KeyComboParser.ParseParts("NumpadEnter");
+        Check("NumpadEnter part is extended",
+            pe is { Count: 1 } && pe[0].extended);
+
+        var pm = KeyComboParser.ParseParts("Ctrl+Enter");
+        Check("main-row Enter part is not extended",
+            pm is { Count: 2 } && !pm[1].extended);
+
+        Check("synthesized input flagged (LLKHF_INJECTED)",
+            KeyboardHooker.IsSynthesized(0x10) && !KeyboardHooker.IsSynthesized(0x01));
     }
 
     private static void CheckNumpadKeyMapping()

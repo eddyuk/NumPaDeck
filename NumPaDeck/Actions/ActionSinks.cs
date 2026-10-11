@@ -51,10 +51,15 @@ public sealed class RealActionSink : IActionSink
     {
         uint vk = ResolveVk(numpadKeyId);
         if (vk == 0) return;
+        // Numpad keys are an extended-key set; the "enter" id is Numpad Enter
+        // (extended) even though it shares VK_RETURN with the main-row Enter.
+        bool extended = string.Equals(numpadKeyId, "enter", StringComparison.Ordinal)
+            || NumpadKeys.IsExtendedKey(vk);
+        uint ext = extended ? NativeMethods.KEYEVENTF_EXTENDED : 0u;
         NativeMethods.SendInputs(new[]
         {
-            NativeMethods.KeyInput((ushort)vk, 0),
-            NativeMethods.KeyInput((ushort)vk, NativeMethods.KEYEVENTF_KEYUP)
+            NativeMethods.KeyInput((ushort)vk, ext),
+            NativeMethods.KeyInput((ushort)vk, NativeMethods.KEYEVENTF_KEYUP | ext)
         });
     }
 

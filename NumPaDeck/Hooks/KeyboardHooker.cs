@@ -31,6 +31,12 @@ public sealed class KeyboardHooker : IDisposable
 
     public IntPtr HookId => _hookId;
 
+    /// <summary>
+    /// True when the hook event was injected via SendInput (LLKHF_INJECTED,
+    /// bit 4 of KBDLLHOOKSTRUCT.flags).
+    /// </summary>
+    public static bool IsSynthesized(uint flags) => (flags & 0x10) != 0;
+
     private sealed class RouterProc
     {
         public readonly KeyboardHooker Owner;
@@ -45,7 +51,14 @@ public sealed class KeyboardHooker : IDisposable
                 bool isDown = msg is NativeMethods.WM_KEYDOWN or NativeMethods.WM_SYSKEYDOWN;
 
                 string? keyId = NumpadKeys.TryFromVk(info.vkCode, info.flags);
-                if (keyId != null)
+                // Synthesized (SendInput) events — including numpad keys we
+                // inject ourselves (passthrough gesture emulation, combos that
+                // contain numpad keys) — must pass straight through to the OS.
+                // Re-triggering the target on our own input would loop forever:
+                // e.g. a passthrough gesture key would re-arm and re-inject
+                // endlessly, and a "Numpad1 -> Ctrl+Numpad7" combo would
+                // re-fire on its own injected Numpad7.
+                if (keyId != null && !IsSynthesized(info.flags))
                 {
                     var target = Owner.Target;
                     if (target != null)

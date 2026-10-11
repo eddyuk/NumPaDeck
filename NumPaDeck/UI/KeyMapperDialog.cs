@@ -354,10 +354,21 @@ public sealed class KeyMapperDialog : Form
             return ((char)('0' + (int)(k - Keys.D0))).ToString();
         if (k >= Keys.F1 && k <= Keys.F12)
             return "F" + ((int)(k - Keys.F1) + 1);
+        if (k >= Keys.NumPad0 && k <= Keys.NumPad9)
+            return "Numpad" + (int)(k - Keys.NumPad0);
 
         return k switch
         {
             Keys.Enter => "Enter",
+            // .NET 10 Keys: numpad operators are Multiply/Subtract/Decimal/Divide;
+            // numpad "=" arrives as Oemplus. Numpad Enter is indistinguishable
+            // from main-row Enter at this layer (type "NumpadEnter" manually —
+            // the parser supports it).
+            Keys.Multiply => "NumpadMul",
+            Keys.Subtract => "NumpadSub",
+            Keys.Decimal => "NumpadDot",
+            Keys.Divide => "NumpadDiv",
+            Keys.Oemplus => "NumpadEqual",
             Keys.Space => "Space",
             Keys.Tab => "Tab",
             Keys.Back => "Backspace",
