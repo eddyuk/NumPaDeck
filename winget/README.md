@@ -4,7 +4,8 @@
 
 | Version | Manifest state | winget-pkgs PR |
 |---------|---------------|----------------|
-| 1.0.0 | ✅ SHA256 from CI, validated (`winget validate` clean) | [#447079](https://github.com/microsoft/winget-pkgs/pull/447079) — **DRAFT** (deliberately held) — all 10 automated checks green, CLA signed; will be undrafted once the stable release is ready, then it goes back to winget-pkgs moderator review |
+| 1.0.1 | ✅ SHA256 from CI release asset (`NumPaDeck-Setup-1.0.1.exe.sha256`) | not yet submitted — see 1.0.0 row; the 1.0.1 folder is staged locally here and can ride along the same draft PR |
+| 1.0.0 | ✅ SHA256 from CI, validated (`winget validate` clean) | [#447079](https://github.com/microsoft/winget-pkgs/pull/447079) — **DRAFT** (deliberately held) — all 10 automated checks green, CLA signed; 1.0.1 supersedes it — when going public, add the `1.0.1/` folder to the PR and undraft (either merge both versions or keep only 1.0.1) |
 
 The folder below mirrors the [winget-pkgs](https://github.com/microsoft/winget-pkgs)
 layout so manifests can be dropped straight into a fork of `winget-pkgs`:
